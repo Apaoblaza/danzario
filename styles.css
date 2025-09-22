@@ -1,0 +1,19 @@
+/* Retoques mínimos sin build. No uses @apply aquí. */
+:root { --brand: #e11d48; --brand-dark: #be123c; }
+html { scroll-behavior: smooth; }
+
+/* Pulso muy sutil en botones principales (opcional) */
+button, a[role="button"] {
+  transform: translateZ(0);
+}
+button:active, a[role="button"]:active {
+  transform: scale(0.98);
+}
+
+/* Suaviza imágenes de la galería */
+img { image-rendering: -webkit-optimize-contrast; }
+
+/* Redondeo consistente para inputs/select */
+input, select {
+  border-radius: 0.75rem;
+}
