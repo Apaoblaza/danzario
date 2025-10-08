@@ -1,4 +1,13 @@
+import { useRouter } from "../lib/router";
+
 export default function Buy() {
+  const { navigate } = useRouter();
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    navigate("/comprar");
+  };
+
   return (
     <section id="comprar" className="py-16 bg-background md:pb-16 pb-28">
       <div className="mx-auto max-w-6xl px-4 grid md:grid-cols-2 gap-10 items-start">
@@ -11,12 +20,12 @@ export default function Buy() {
             <div className="text-xs text-ink-soft">Incluye IVA</div>
           </div>
 
-          <form className="mt-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="text-sm font-medium">Selecciona tu opción:</label>
               <select className="mt-1 w-full border border-line rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand">
-                <option>Version Light</option>
-                <option>Version Completa</option>
+                <option>Versión Light</option>
+                <option>Versión Completa</option>
               </select>
             </div>
             <div>
@@ -24,7 +33,7 @@ export default function Buy() {
               <input type="number" min="1" defaultValue={1} className="mt-1 w-full border border-line rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand" />
             </div>
             <button className="w-full rounded-xl px-5 py-3 font-semibold bg-brand text-white hover:bg-brand-dark transition">
-              Quiero mi Danzario
+              Quiero concretar mi compra
             </button>
             <p className="text-xs text-ink-soft text-center">🔒 Pago seguro — tarjetas y transferencias</p>
           </form>

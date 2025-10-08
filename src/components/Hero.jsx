@@ -1,7 +1,11 @@
++7
+-0
+
 import danzario from "../assets/img/Danzario_Portada.jpeg"
 import stickers from "../assets/img/Stickers.jpeg"
 import esquela1 from "../assets/img/Esquela_Flores.jpeg"
 import esquela2 from "../assets/img/Esquela_Swan.jpeg"
+import { Link } from "../lib/router"
 
 export default function Hero() {
   return (
@@ -27,6 +31,12 @@ export default function Hero() {
             <a href="#producto" className="rounded-xl px-5 py-3 font-semibold border border-line text-ink hover:bg-background transition text-center">
               Ver detalles
             </a>
+            <Link
+              to="/interesados"
+              className="rounded-xl px-5 py-3 font-semibold border border-brand text-brand hover:bg-brand/10 transition text-center"
+            >
+              Unirme a la lista prioritaria
+            </Link>
           </div>
           <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-ink-soft">
             <div className="flex items-center gap-2"><span>🚚</span> Envío a todo Chile</div>
