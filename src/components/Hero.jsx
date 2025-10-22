@@ -1,6 +1,3 @@
-+7
--0
-
 import danzario from "../assets/img/Danzario_Portada.jpeg"
 import stickers from "../assets/img/Stickers.jpeg"
 import esquela1 from "../assets/img/Esquela_Flores.jpeg"

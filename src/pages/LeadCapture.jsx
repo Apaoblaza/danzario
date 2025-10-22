@@ -1,115 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
++127
+-0
+
 import Footer from "../components/Footer";
 import { Link } from "../lib/router";
-import { appendLead, loadLeads } from "../lib/leadsStorage";
 
 export default function LeadCapture() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    goal: "",
-  });
-  const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
-  const [leads, setLeads] = useState([]);
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [adminMessage, setAdminMessage] = useState("");
+  const formEmbedUrl = import.meta.env.VITE_LEAD_FORM_EMBED_URL ?? "";
+  const shareUrlFromEnv = import.meta.env.VITE_LEAD_FORM_SHARE_URL ?? "";
 
-  useEffect(() => {
-    setLeads(loadLeads());
-
-    if (typeof window === "undefined") return undefined;
-
-    const handleStorage = () => {
-      setLeads(loadLeads());
-    };
-
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const nextErrors = {};
-
-    if (!formData.name.trim()) {
-      nextErrors.name = "Cuéntanos tu nombre";
+  const shareFormUrl = (() => {
+    if (shareUrlFromEnv) return shareUrlFromEnv;
+    if (!formEmbedUrl) return "";
+    if (formEmbedUrl.includes("viewform?embedded=true")) {
+      return formEmbedUrl.replace("viewform?embedded=true", "viewform");
     }
+    return formEmbedUrl;
+  })();
 
-    if (!formData.email.trim()) {
-      nextErrors.email = "Necesitamos tu correo electrónico";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      nextErrors.email = "Revisa que tu correo esté bien escrito";
-    }
-
-    setErrors(nextErrors);
-
-    if (Object.keys(nextErrors).length === 0) {
-      const newLead = {
-        ...formData,
-        createdAt: new Date().toISOString(),
-      };
-
-      const nextLeads = appendLead(newLead);
-      setLeads(nextLeads);
-      setSubmitted(true);
-      setFormData({ name: "", email: "", goal: "" });
-    }
-  };
-
-  const handleDownloadCsv = () => {
-    if (!leads.length) return;
-
-    const header = "Nombre,Correo,Objetivo,Fecha\n";
-    const rows = leads
-      .map((lead) => {
-        const date = new Date(lead.createdAt).toLocaleString("es-CL", {
-          dateStyle: "short",
-          timeStyle: "short",
-        });
-        const escape = (value = "") =>
-          `"${String(value).replace(/"/g, '""')}"`;
-        return [lead.name, lead.email, lead.goal, date].map(escape).join(",");
-      })
-      .join("\n");
-
-    const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "interesados-danzario.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    setAdminMessage("Archivo CSV descargado");
-  };
-
-  const handleCopyEmails = async () => {
-    if (!leads.length) return;
-    const emails = leads.map((lead) => lead.email).join(", ");
-
-    try {
-      await navigator.clipboard.writeText(emails);
-      setAdminMessage("Correos copiados al portapapeles");
-    } catch (error) {
-      setAdminMessage("No se pudo copiar. Intenta descargar el CSV.");
-    }
-  };
-
-  useEffect(() => {
-    if (!adminMessage) return;
-    const timeout = setTimeout(() => setAdminMessage(""), 4000);
-    return () => clearTimeout(timeout);
-  }, [adminMessage]);
-
-  const totalLeads = useMemo(() => leads.length, [leads]);
+  const hasEmbedConfigured = Boolean(formEmbedUrl);
 
   return (
     <div className="min-h-screen bg-background text-ink flex flex-col">
@@ -129,7 +37,7 @@ export default function LeadCapture() {
 
       <main className="flex-1">
         <section className="py-16">
-          <div className="mx-auto max-w-5xl px-4 grid lg:grid-cols-[1.1fr,0.9fr] gap-12 items-start">
+          <div className="mx-auto max-w-5xl px-4 grid lg:grid-cols-[1.05fr,0.95fr] gap-12 items-start">
             <div>
               <span className="inline-flex items-center gap-2 text-xs font-medium text-ink-soft bg-brand/10 rounded-full px-3 py-1 mb-4">
                 <span>Lista exclusiva</span>
@@ -140,219 +48,78 @@ export default function LeadCapture() {
                 Sé parte de la primera generación de bailarinas que viven con un Danzario.
               </h1>
               <p className="mt-6 text-lg text-ink-soft">
-                Comparte tus datos y recibe antes que nadie las novedades, lanzamientos especiales y oportunidades para conseguir tu Danzario con beneficios exclusivos.
+                Comparte tus datos y recibe antes que nadie las novedades, lanzamientos especiales y oportunidades
+                para conseguir tu Danzario con beneficios exclusivos.
               </p>
               <div className="mt-8 space-y-3 text-ink-soft">
                 <div className="flex items-start gap-3">
                   <span className="mt-1">✨</span>
-                  <p className="leading-relaxed">
-                    Acceso prioritario a reposiciones y ediciones limitadas.
-                  </p>
+                  <p className="leading-relaxed">Acceso prioritario a reposiciones y ediciones limitadas.</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="mt-1">🎁</span>
-                  <p className="leading-relaxed">
-                    Beneficios y descuentos solo para la comunidad de lanzamiento.
-                  </p>
+                  <p className="leading-relaxed">Beneficios y descuentos solo para la comunidad de lanzamiento.</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="mt-1">🩰</span>
-                  <p className="leading-relaxed">
-                    Recursos gratuitos para acompañar tu práctica y crecimiento.
-                  </p>
+                  <p className="leading-relaxed">Recursos gratuitos para acompañar tu práctica y crecimiento.</p>
                 </div>
               </div>
-            </div>
 
-            <div className="card p-6 shadow-soft border border-line/60 bg-white">
-              {submitted ? (
-                <div className="space-y-6 text-center">
-                  <div className="text-3xl">💌</div>
-                  <h2 className="text-2xl font-semibold">¡Gracias por unirte!</h2>
-                  <p className="text-ink-soft">
-                    Muy pronto recibirás un correo de bienvenida con el siguiente paso para asegurar tu Danzario.
-                  </p>
-                  <div className="flex flex-col gap-3">
-                    <Link
-                      to="/comprar"
-                      className="rounded-xl px-5 py-3 font-semibold bg-brand text-white hover:bg-brand-dark transition"
-                    >
-                      Ir a concretar mi compra
-                    </Link>
-                    <Link
-                      to="/"
-                      className="rounded-xl px-5 py-3 font-semibold border border-line text-ink hover:bg-background transition"
-                    >
-                      Volver al inicio
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                <form className="space-y-5" onSubmit={handleSubmit} noValidate>
-                  <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium">
-                      Nombre completo
-                    </label>
-                    <input
-                      id="name"
-                      name="name"
-                      type="text"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className={`w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand ${
-                        errors.name ? "border-red-400" : "border-line"
-                      }`}
-                      placeholder="Ej: Ana Poblete"
-                      autoComplete="name"
-                      required
-                    />
-                    {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">
-                      Correo electrónico
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className={`w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand ${
-                        errors.email ? "border-red-400" : "border-line"
-                      }`}
-                      placeholder="hola@ejemplo.cl"
-                      autoComplete="email"
-                      required
-                    />
-                    {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="goal" className="text-sm font-medium">
-                      ¿Qué te gustaría lograr con tu Danzario?
-                    </label>
-                    <textarea
-                      id="goal"
-                      name="goal"
-                      value={formData.goal}
-                      onChange={handleChange}
-                      className="w-full border border-line rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand min-h-[120px]"
-                      placeholder="Cuéntanos en qué etapa de tu danza estás, qué desafíos tienes o qué sueños quieres registrar."
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full rounded-xl px-5 py-3 font-semibold bg-brand text-white hover:bg-brand-dark transition"
-                  >
-                    Quiero recibir las novedades
-                  </button>
-                  <p className="text-xs text-ink-soft text-center">
-                    Al enviar tus datos aceptas recibir correos de Danzario. Puedes desuscribirte cuando quieras.
-                  </p>
-                </form>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-t border-line/70 bg-white/70">
-          <div className="mx-auto max-w-5xl px-4 py-10 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-ink">
-                  Seguimiento del equipo
-                </h2>
-                <p className="text-sm text-ink-soft">
-                  Guarda y exporta los contactos registrados desde esta misma página.
+              <div className="mt-12 space-y-4 rounded-2xl border border-line bg-white/80 p-6 shadow-sm">
+                <h2 className="text-lg font-semibold text-ink">¿Cómo reviso la lista de correos?</h2>
+                <p className="text-sm leading-relaxed text-ink-soft">
+                  Cada respuesta se guarda automáticamente en la hoja de cálculo conectada a tu formulario de Google.
+                  Desde tu cuenta puedes ir a <strong>Respuestas → Ver en Hojas de cálculo</strong> para descargar o
+                  compartir la base sin depender de la aplicación.
+                </p>
+                <p className="text-sm leading-relaxed text-ink-soft">
+                  Si necesitas recibir notificaciones por correo, activa las alertas de Google Forms para mantenerte al día
+                  con nuevas suscripciones.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowAdminPanel((prev) => !prev)}
-                className="self-start sm:self-auto rounded-xl border border-line px-4 py-2 text-sm font-medium text-ink hover:bg-background transition"
-              >
-                {showAdminPanel ? "Ocultar listado" : "Ver listado de correos"}
-              </button>
             </div>
 
-            {showAdminPanel && (
-              <div className="space-y-6 rounded-2xl border border-line bg-white p-5 shadow-sm">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  <div>
-                    <p className="text-sm text-ink-soft">Total de personas registradas</p>
-                    <p className="text-3xl font-semibold text-ink">{totalLeads}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={handleCopyEmails}
-                      className="rounded-xl border border-line px-4 py-2 text-sm font-medium text-ink hover:bg-background transition"
-                    >
-                      Copiar correos
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDownloadCsv}
-                      className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark transition"
-                    >
-                      Descargar CSV
-                    </button>
-                  </div>
+            <div className="card p-0 shadow-soft border border-line/60 bg-white overflow-hidden">
+              {hasEmbedConfigured ? (
+                <iframe
+                  src={formEmbedUrl}
+                  title="Formulario de registro"
+                  className="w-full min-h-[760px]"
+                  allowFullScreen
+                  loading="lazy"
+                >
+                  Cargando…
+                </iframe>
+              ) : (
+                <div className="space-y-4 p-6">
+                  <h2 className="text-2xl font-semibold text-ink">Conecta tu formulario</h2>
+                  <p className="text-sm leading-relaxed text-ink-soft">
+                    Agrega la variable <code className="font-mono text-xs bg-background px-1 py-0.5 rounded">VITE_LEAD_FORM_EMBED_URL</code>
+                    en tu archivo <code className="font-mono text-xs bg-background px-1 py-0.5 rounded">.env</code> con el enlace de inserción que
+                    entrega Google Forms. Así el formulario quedará incrustado en esta página y cada registro irá a tu Google Sheets.
+                  </p>
+                  <p className="text-sm leading-relaxed text-ink-soft">
+                    En Google Forms ve a <strong>Enviar → &lt;&gt;</strong>, copia la URL dentro del campo "Incrustar HTML" y
+                    pégala como valor de la variable. Luego reinicia <code className="font-mono text-xs bg-background px-1 py-0.5 rounded">npm run dev</code>.
+                  </p>
                 </div>
+              )}
 
-                {adminMessage && (
-                  <div className="rounded-xl bg-brand/10 px-4 py-3 text-sm text-brand-dark">
-                    {adminMessage}
-                  </div>
-                )}
-
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-left text-sm">
-                    <thead className="text-xs uppercase tracking-wide text-ink-soft border-b border-line">
-                      <tr>
-                        <th className="py-2 pr-6">Nombre</th>
-                        <th className="py-2 pr-6">Correo</th>
-                        <th className="py-2 pr-6">Motivación</th>
-                        <th className="py-2">Fecha de registro</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-line">
-                      {leads.length ? (
-                        leads
-                          .slice()
-                          .reverse()
-                          .map((lead) => {
-                            const formattedDate = new Date(lead.createdAt).toLocaleString("es-CL", {
-                              dateStyle: "medium",
-                              timeStyle: "short",
-                            });
-
-                            return (
-                              <tr key={`${lead.email}-${lead.createdAt}`}>
-                                <td className="py-3 pr-6 font-medium text-ink">{lead.name || "—"}</td>
-                                <td className="py-3 pr-6 text-brand-dark break-all">{lead.email}</td>
-                                <td className="py-3 pr-6 text-ink-soft max-w-sm">
-                                  {lead.goal ? lead.goal : <span className="italic text-ink-soft/70">Sin comentario</span>}
-                                </td>
-                                <td className="py-3 text-ink-soft whitespace-nowrap">{formattedDate}</td>
-                              </tr>
-                            );
-                          })
-                      ) : (
-                        <tr>
-                          <td colSpan={4} className="py-6 text-center text-ink-soft">
-                            Aún no hay registros guardados.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+              {shareFormUrl && (
+                <div className="border-t border-line bg-background/60 px-6 py-4 flex flex-wrap items-center gap-3">
+                  <span className="text-sm text-ink-soft">¿Prefieres abrirlo aparte?</span>
+                  <a
+                    href={shareFormUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark transition"
+                  >
+                    Abrir en Google Forms
+                  </a>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </section>
       </main>
